@@ -1,6 +1,6 @@
 /**
  * angular-strap
- * @version v2.1.6 - 2015-01-11
+ * @version v2.2.0 - 2015-02-26
  * @link http://mgcrea.github.io/angular-strap
  * @author Olivier Louvignes (olivier@mg-crea.com)
  * @license MIT License, http://www.opensource.org/licenses/MIT
@@ -72,6 +72,14 @@ angular.module('mgcrea.ngStrap.typeahead', ['mgcrea.ngStrap.tooltip', 'mgcrea.ng
           if(scope.$activeIndex >= matches.length) {
             scope.$activeIndex = 0;
           }
+          
+          // When the placement is not one of the bottom placements, re-calc the positioning
+          // so the results render correctly.
+          if (/^(bottom|bottom-left|bottom-right)$/.test(options.placement)) return;
+          
+          // wrap in a $timeout so the results are updated
+          // before repositioning
+          $timeout($typeahead.$applyPlacement);
         };
 
         $typeahead.activate = function(index) {
@@ -186,6 +194,9 @@ angular.module('mgcrea.ngStrap.typeahead', ['mgcrea.ngStrap.tooltip', 'mgcrea.ng
           if(angular.isDefined(attr[key])) options[key] = attr[key];
         });
 
+        // Disable browser autocompletion
+        element.attr('autocomplete' ,'off');
+        
         // Build proper ngOptions
         var filter = options.filter || defaults.filter;
         var limit = options.limit || defaults.limit;
@@ -246,7 +257,7 @@ angular.module('mgcrea.ngStrap.typeahead', ['mgcrea.ngStrap.tooltip', 'mgcrea.ng
         // Model rendering in view
         controller.$render = function () {
           // console.warn('$render', element.attr('ng-model'), 'controller.$modelValue', typeof controller.$modelValue, controller.$modelValue, 'controller.$viewValue', typeof controller.$viewValue, controller.$viewValue);
-          if(controller.$isEmpty(controller.$viewValue)) return element.val('');
+          if(controller.$isEmpty(controller.$viewValue)) return element.val(controller.$modelValue);
           var index = typeahead.$getIndex(controller.$modelValue);
           var selected = angular.isDefined(index) ? typeahead.$scope.$matches[index].label : controller.$viewValue;
           selected = angular.isObject(selected) ? parsedOptions.displayValue(selected) : selected;
